@@ -9,16 +9,25 @@ const API_URL = "https://www.omdbapi.com/?apikey=b6003d8a";
 const App = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [movies, setMovies] = useState([]);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     searchMovies("Batman");
   }, []);
 
   const searchMovies = async (title) => {
-    const response = await fetch(`${API_URL}&s=${title}`);
-    const data = await response.json();
-
-    setMovies(data.Search);
+    try {
+      const response = await fetch(`${API_URL}&s=${title}`);
+      if (!response.ok) {
+        throw new Error("Network response was not ok");
+      }
+      const data = await response.json();
+      setMovies(data.Search);
+      setError(null);
+    } catch (error) {
+      console.error("Error fetching movies:", error);
+      setError("Error fetching movies. Please try again later.");
+    }
   };
 
   return (
@@ -38,10 +47,16 @@ const App = () => {
         />
       </div>
 
+      {error && (
+        <div className="error">
+          <h2>{error}</h2>
+        </div>
+      )}
+
       {movies?.length > 0 ? (
         <div className="container">
           {movies.map((movie) => (
-            <MovieCard movie={movie} />
+            <MovieCard key={movie.imdbID} movie={movie} />
           ))}
         </div>
       ) : (
